@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>ArcGIS 圖台展示</title>
+    <link rel="stylesheet" href="https://js.arcgis.com/4.28/esri/themes/light/main.css">
+    <script src="https://cdn.jsdelivr.net/npm/axios@1.6.7/dist/axios.min.js"></script>
+    <script src="https://js.arcgis.com/4.28/"></script>
+    
+
+    <style>
+        html, body, #viewDiv {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+        }
+
+        #uploadPanel {
+            position: absolute;
+            top: 10px;
+            left: 55px;
+            z-index: 99;
+            background: white;
+            padding: 10px;
+            border-radius: 6px;
+            box-shadow: 0 0 5px rgba(0,0,0,0.3);
+        }
+
+        
+    </style>
+</head>
+<body>
+    <div id="viewDiv"></div>
+    <div id="uploadPanel">
+        <input type="file" id="kmlInput" accept=".kml" />
+        <select id="fieldSelect" style="margin-top: 5px;"></select>
+        <button id="btn_table" onclick="showTable()" disabled>顯示資料表</button>
+        <button onclick="runPivot()">執行樞紐分析</button>
+    </div>
+    
+
+    <script>
+        var AddKml = null;
+        let currentGeoLayer = null;
+        require([
+            "esri/Map",
+            "esri/views/MapView",
+            "esri/layers/WebTileLayer",
+            "esri/layers/GeoJSONLayer",
+            "esri/widgets/LayerList",
+            "esri/layers/GraphicsLayer",
+            "esri/Graphic",
+            "esri/geometry/Point",
+            "esri/symbols/SimpleMarkerSymbol",
+            "esri/layers/WMSLayer"
+        ], function (
+            Map, MapView, WebTileLayer, GeoJSONLayer,
+            LayerList, GraphicsLayer, Graphic, Point,
+            SimpleMarkerSymbol, WMSLayer) {
+            
+            // 台灣電子地圖 (NLSC)
+            const emapLayer = new WebTileLayer({
+                urlTemplate: "https://wmts.nlsc.gov.tw/wmts/EMAP/default/GoogleMapsCompatible/{level}/{row}/{col}.png",
+                tileInfo: {
+                    dpi: 96,
+                    rows: 256,
+                    cols: 256,
+                    origin: { x: -20037508.342787, y: 20037508.342787 },
+                    spatialReference: { wkid: 3857 },
+                    lods: Array.from({ length: 20 }, (_, i) => ({
+                        level: i,
+                        resolution: 156543.033928 / Math.pow(2, i),
+                        scale: 591657527.591555 / Math.pow(2, i)
+                    }))
+                },
+                spatialReference: { wkid: 3857 },
+                title: "NLSC 電子地圖"
+            });
+
+            
+
+            const graphicsLayer = new GraphicsLayer({ title:'經濟部水利署-雨量站基本資料'});
+            
+
+            const arcmap = new Map({ layers: [emapLayer, graphicsLayer] });
+
+            const view = new MapView({
+                container: "viewDiv",
+                map: arcmap,
+                center: [121, 23.8],
+                zoom: 7
+            });
+
+            const layerList = new LayerList({ view });
+            view.ui.add(layerList, "top-right");
+            
+            arcmap.add(graphicsLayer);
+
+            AddKml = (url, tittle) => {
+                const geoLayer = new GeoJSONLayer({
+                    url: url,
+                    title: tittle
+                });
+
+                geoLayer.load()
+                    .then(() => console.log("圖層已載入"))
+                    .catch(err => console.error("圖層載入失敗", err));
+
+                geoLayer.when(() => {
+                    arcmap.add(geoLayer);
+                    arcmap.layers.push(geoLayer)
+                    currentGeoLayer = geoLayer;
+
+                    //焦點
+                    if (geoLayer.fullExtent) {
+                        //view.goTo(geoLayer.fullExtent.expand(1.2)).catch(console.warn);
+                    }
+
+                    geoLayer.queryFeatures().then(results => {
+                        const fields = new Set();
+                        const list = [];
+                        results.features.forEach(f => {
+                            for (let k in f.attributes) {
+                                fields.add(k);
+                            }
+                            list.push(f.attributes);
+                        });
+
+                        //回傳給vue 更新資料欄位
+                        window.parent.postMessage({
+                            type: "columnsResult",
+                            data: [...fields]
+                        }, "*");
+
+                        //回傳給vue 更新清單資料
+                        window.parent.postMessage({
+                            type: "listResult",
+                            data: list
+                        }, "*");
+
+                        const fieldSelect = document.getElementById("fieldSelect");
+                        fieldSelect.innerHTML = "";
+                        fields.forEach(f => {
+                            const opt = document.createElement("option");
+                            opt.value = f;
+                            opt.innerText = f;
+                            fieldSelect.appendChild(opt);
+                        });
+
+                        //移除鎖定按鈕
+                        document.querySelector('#btn_table').removeAttribute('disabled');
+
+                    });
+                });
+            }
+
+            axios.get('https://fhy.wra.gov.tw/WraApi/v1/Rain/Station').then(r => {
+                if (r.statusText == "OK") {
+                    const dataFromAPI = r.data;
+
+                    // 將每筆資料轉成 Graphic
+                    dataFromAPI.forEach(item => {
+                        const point = new Point({
+                            longitude: item.Longitude,
+                            latitude: item.Latitude
+                        });
+
+                        const markerSymbol = new SimpleMarkerSymbol({
+                            color: "red",
+                            outline: {
+                                color: "white",
+                                width: 1
+                            }
+                        });
+
+                        const pointGraphic = new Graphic({
+                            geometry: point,
+                            symbol: markerSymbol,
+                            attributes: item,
+                            popupTemplate: {
+                                title: "資訊",
+                                content: `名稱: ${item.BasinName}`
+                            }
+                        });
+
+                        graphicsLayer.add(pointGraphic);
+                    });
+                }
+            });
+        });
+
+        const runPivot = function () {
+            if (!currentGeoLayer) return alert("請先上傳圖層");
+
+            const field = document.getElementById("fieldSelect").value;
+            currentGeoLayer.queryFeatures().then(results => {
+                const counts = {};
+                
+                results.features.forEach(f => {
+                    const val = f.attributes[field] || "空值";
+                    counts[val] = (counts[val] || 0) + 1;
+                });
+
+                // 用 postMessage 傳統計資料與欄位名稱給 Vue 頁面
+                window.parent.postMessage({
+                    type: "pivotResult",
+                    field: field,
+                    data: counts
+                }, "*");
+            });
+        };
+
+        const showTable = () => {
+            window.parent.postMessage({
+                type: "OpenTableModal",
+            }, "*");
+        }
+    </script>
+</body>
+</html>

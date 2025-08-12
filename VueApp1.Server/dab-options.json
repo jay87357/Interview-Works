@@ -1,0 +1,29 @@
+﻿{
+   "ConnectionStringName": "dab-connection-string",
+   "Dacpac": null,
+   "DatabaseType": 4,
+   "MergeDacpacs": false,
+   "ProjectPath": "C:\\Users\\jay\\Desktop\\專案\\面試\\VueApp1\\VueApp1.Server",
+   "Tables": [
+      {
+         "Name": "RelUserGroup",
+         "ObjectType": 0
+      },
+      {
+         "Name": "SysAuthList",
+         "ObjectType": 0
+      },
+      {
+         "Name": "SysGroup",
+         "ObjectType": 0
+      },
+      {
+         "Name": "SysUser",
+         "ObjectType": 0
+      },
+      {
+         "Name": "SysUser_View",
+         "ObjectType": 3
+      }
+   ]
+}
