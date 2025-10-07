@@ -23,12 +23,14 @@
               </div>
             </router-link>
           </div>
-          <div class="col-lg-4 d-none">
-            <div class="features-icons-item mx-auto mb-0 mb-lg-3">
-              <div class="features-icons-icon d-flex"><i class="bi-terminal m-auto text-primary"></i></div>
-              <h3>Easy to Use</h3>
-              <p class="lead mb-0">Ready to use with your own content, or customize the source files!</p>
-            </div>
+          <div class="col-lg-4">
+            <router-link to="/SysSto/DataStore">
+              <div class="features-icons-item mx-auto mb-0 mb-lg-3">
+                <div class="features-icons-icon d-flex"><i class="bi-terminal m-auto text-primary"></i></div>
+                <h3>資料匯入工具</h3>
+                <p class="lead mb-0">把CSV、xls、xlsx匯入到資料庫且可以新增、編輯、刪除</p>
+              </div>
+            </router-link>
           </div>
         </div>
       </div>

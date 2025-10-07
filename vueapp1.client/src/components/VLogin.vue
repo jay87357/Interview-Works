@@ -71,7 +71,9 @@
               Swal.showLoading();
               const timer = Swal.getPopup().querySelector("b");
               timerInterval = setInterval(() => {
-                timer.textContent = `${Swal.getTimerLeft()}`;
+                let sec = Swal.getTimerLeft();
+                sec = Math.round(sec / 1000);
+                timer.textContent = `${sec}`;
               }, 100);
             },
             willClose: () => {

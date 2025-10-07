@@ -1,12 +1,13 @@
 // src/router/index.js
 import { createRouter, createWebHistory } from 'vue-router';
-import Home from '../components/VHome.vue';
-import About from '../components/About.vue';
-import VMap from '../components/VMap.vue';
-import VUserInfo from '../components/VUserInfo.vue';
+import Home from '@/components/VHome.vue';
+import About from '@/components/About.vue';
+import VMap from '@/components/VMap.vue';
+import VUserInfo from '@/components/VUserInfo.vue';
 import VUsers from '@/components/SysMgn/vUsers.vue';
 import VGroup from '@/components/SysMgn/vGroup.vue';
 import VAuth from '@/components/SysMgn/vAuth.vue';
+import VDataStore from '@/components/SysSto/vDataStore.vue';
 
 
 import { globalState } from '@/globalState';
@@ -20,6 +21,7 @@ const routes = [
   { path: '/SysMgn/Users', component: VUsers, meta: { requiresAuth: true, requiredRole: '系統管理員' } },
   { path: '/SysMgn/Group', component: VGroup, meta: { requiresAuth: true, requiredRole: '系統管理員' } },
   { path: '/SysMgn/Auth', component: VAuth, meta: { requiresAuth: true, requiredRole: '系統管理員' } },
+  { path: '/SysSto/DataStore', component: VDataStore, meta: { requiresAuth: true, requiredRole: '系統管理員' } },
 ]
 
 const router = createRouter({

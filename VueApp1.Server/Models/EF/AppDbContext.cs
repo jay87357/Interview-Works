@@ -13,6 +13,8 @@ public partial class AppDbContext : DbContext
     {
     }
 
+    public virtual DbSet<MIS_StoList> MIS_StoLists { get; set; }
+
     public virtual DbSet<RelGroupAuth> RelGroupAuths { get; set; }
 
     public virtual DbSet<RelUserGroup> RelUserGroups { get; set; }
@@ -27,6 +29,14 @@ public partial class AppDbContext : DbContext
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        modelBuilder.Entity<MIS_StoList>(entity =>
+        {
+            entity.ToTable("MIS_StoList");
+
+            entity.Property(e => e.Name).IsRequired();
+            entity.Property(e => e.UploadDate).IsRequired();
+        });
+
         modelBuilder.Entity<RelGroupAuth>(entity =>
         {
             entity.ToTable("RelGroupAuth");

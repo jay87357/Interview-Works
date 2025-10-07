@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using MyDb.Models.EF;
+using static System.Net.WebRequestMethods;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -64,7 +65,8 @@ app.Use(async (context, next) =>
 {
     // 如果是 API 或靜態資源，就直接跳過
     if (context.Request.Path.StartsWithSegments("/api") ||
-        context.Request.Path.Value.Contains("."))
+        context.Request.Path.Value.Contains(".") ||
+        context.Request.Path.Value.Contains("swagger"))
     {
         await next();
     }

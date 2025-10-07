@@ -4,6 +4,7 @@
    "ContextNamespace": null,
    "FilterSchemas": false,
    "IncludeConnectionString": false,
+   "MinimumProductVersion": "2.6.1186",
    "ModelNamespace": null,
    "OutputContextPath": null,
    "OutputPath": "Models\\EF",
@@ -14,6 +15,10 @@
    "SelectedToBeGenerated": 0,
    "T4TemplatePath": null,
    "Tables": [
+      {
+         "Name": "MIS_StoList",
+         "ObjectType": 0
+      },
       {
          "Name": "RelGroupAuth",
          "ObjectType": 0
